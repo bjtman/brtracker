@@ -1,4 +1,4 @@
-// BRTRACKER FIRMWARE VERSION 1.0
+// BRTRACKER FIRMWARE VERSION 1.1
 // Written by Brian Tice
 // Last Revision: 6-5-2014
 
@@ -7,6 +7,8 @@
 // the more the readings will be smoothed, but the slower the output will
 // respond to the input.  Using a constant rather than a normal variable lets
 // use this value to determine the size of the readings array.
+
+//#include <softwareserial.h>
 
 #define PASSENGER_VEHICLE               1
 #define DELIVERY_TRUCK                  2
@@ -19,7 +21,7 @@
 #define TANK_MAX_DELIVERY_TRUCK         200.0
 #define TANK_MAX_TRAILER_TRUCK          400.0
 #define TANK_MAX_TRAILER_TRUCK_MODIFIED 1200.0
-
+#include <SoftwareSerial.h>
 const int numReadings = 40;
 int readings[numReadings];      // the readings from the analog input
 int index = 0;                  // the index of the current reading
@@ -30,16 +32,18 @@ const int inputPin = A0;
 const int dipSwitchPin0 = 2;
 const int dipSwitchPin1 = 3;
 const int dipSwitchPin2 = 4;
-
+const int RxPin         = 10;
+const int TxPin         = 11;
 const int ADCLookUpTable[21] = { 665, 662, 658, 654, 648, 640, 627, 606, 581, 555, 
                                  530, 506, 481, 455, 428, 400, 369, 336, 301, 267, 228 };
 
+SoftwareSerial mySerial(RxPin, TxPin);
 
 void setup()
 {
   // initialize serial communication with computer:
   Serial.begin(9600);       
-
+  mySerial.begin(9600);
   pinMode(dipSwitchPin0,INPUT);
   pinMode(dipSwitchPin0,INPUT);
   pinMode(dipSwitchPin0,INPUT);  
@@ -183,11 +187,29 @@ void broadcastDataRS232(float volume, float voltageOfSender, int tankSize) {
   Serial.println(volume);
   //Serial.println("  " + switchState); 
   delay(1);        // delay in between reads for stability  
+  
+ 
+  
+  
+  
   return;
   
   
 } 
 
 void broadcastDataRS485(float volume, float voltageOfSender, int tankSize) {
+  
+  
+  mySerial.print(average);  
+  mySerial.print("   ");
+  mySerial.print(tankSize);
+  mySerial.print("   ");
+  mySerial.print(voltageOfSender);
+  mySerial.print("   ");
+  mySerial.println(volume);
+  //Serial.println("  " + switchState); 
+  delay(1);        // delay in between reads for stability  
+  
+  
   return;
 }  
