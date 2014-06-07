@@ -13,7 +13,7 @@
 #define PASSENGER_VEHICLE               1
 #define DELIVERY_TRUCK                  2
 #define TRAILER_TRUCK                   3
-#define DELIVERY_TRUCK_MODIFIED         4
+#define TRAILER_TRUCK_MODIFIED          4
 #define TANK_SELECTION_ERROR            99
 #define AREF                            3.30
 
@@ -86,7 +86,7 @@ int checkTankSizeSelector() {
   int switch2 = digitalRead(dipSwitchPin1);
   
   if(!switch1 && !switch2) {
-    return DELIVERY_TRUCK_MODIFIED;
+    return TRAILER_TRUCK_MODIFIED;
   }
   else if(switch1 && !switch2) {
     return TRAILER_TRUCK;
@@ -152,7 +152,7 @@ float convertADCToLiters(int ADCReading, int tankSize) {
       fullTank = TANK_MAX_TRAILER_TRUCK;
       break;
     }
-    case DELIVERY_TRUCK_MODIFIED: {
+    case TRAILER_TRUCK_MODIFIED: {
       fullTank = TANK_MAX_TRAILER_TRUCK_MODIFIED;
       break;
     }
@@ -180,7 +180,24 @@ void broadcastDataRS232(float volume, float volumeGallons, float voltageOfSender
   Serial.print(average);  
   Serial.print("   ");
   
-  Serial.print(tankSize);
+  switch(tankSize) {
+    case PASSENGER_VEHICLE: 
+      Serial.print("PV");
+      break;
+    case DELIVERY_TRUCK:
+      Serial.print("DT");
+      break;
+    case TRAILER_TRUCK:
+      Serial.print("TT");
+      break;
+    case TRAILER_TRUCK_MODIFIED:
+      Serial.print("TM");
+      break;
+    default:
+      Serial.print("ERROR");
+      break;
+  }
+  //Serial.print(tankSize);
   Serial.print("   ");
   Serial.print(voltageOfSender);
   Serial.print("   ");
