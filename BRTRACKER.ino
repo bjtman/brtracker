@@ -1,6 +1,6 @@
-// BRTRACKER FIRMWARE VERSION 1.1
+// BRTRACKER FIRMWARE VERSION 1.3
 // Written by Brian Tice
-// Last Revision: 6-5-2014
+// Last Revision: 6-7-2014
 
 
 // Define the number of samples to keep track of.  The higher the number,
@@ -63,9 +63,9 @@ void loop() {
   getLowPassFilteredADCReading();
   float voltageReading = convertADCToVoltage(average);
   float literReading = convertADCToLiters(average,tankSelectorState);
-  
-  broadcastDataRS232(literReading,voltageReading,tankSelectorState);
-  broadcastDataRS485(literReading,voltageReading,tankSelectorState);
+  float gallonReading = convertLitersToGallons(literReading);
+  broadcastDataRS232(literReading,gallonReading,voltageReading,tankSelectorState);
+  broadcastDataRS485(literReading,gallonReading,voltageReading,tankSelectorState);
   
   
           
@@ -175,7 +175,7 @@ float convertADCToLiters(int ADCReading, int tankSize) {
 }  
   
 // broadcastDataRS232(literReading,voltageReading,tankSelectorState); 
-void broadcastDataRS232(float volume, float voltageOfSender, int tankSize) {
+void broadcastDataRS232(float volume, float volumeGallons, float voltageOfSender, int tankSize) {
  
   Serial.print(average);  
   Serial.print("   ");
@@ -184,20 +184,15 @@ void broadcastDataRS232(float volume, float voltageOfSender, int tankSize) {
   Serial.print("   ");
   Serial.print(voltageOfSender);
   Serial.print("   ");
-  Serial.println(volume);
+  Serial.print(volume);
+  Serial.print("   ");
+  Serial.println(volumeGallons);
   //Serial.println("  " + switchState); 
   delay(1);        // delay in between reads for stability  
-  
- 
-  
-  
-  
   return;
-  
-  
 } 
 
-void broadcastDataRS485(float volume, float voltageOfSender, int tankSize) {
+void broadcastDataRS485(float volume, float volumeGallons, float voltageOfSender, int tankSize) {
   
   
   mySerial.print(average);  
@@ -206,10 +201,17 @@ void broadcastDataRS485(float volume, float voltageOfSender, int tankSize) {
   mySerial.print("   ");
   mySerial.print(voltageOfSender);
   mySerial.print("   ");
-  mySerial.println(volume);
+  mySerial.print(volume);
+  mySerial.print("   ");
+  mySerial.println(volumeGallons);
   //Serial.println("  " + switchState); 
   delay(1);        // delay in between reads for stability  
   
   
   return;
-}  
+}
+
+float convertLitersToGallons(float literReading) {
+  return literReading / 3.785;
+}
+  
