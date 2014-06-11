@@ -1,14 +1,11 @@
-// BRTRACKER FIRMWARE VERSION 1.3
+// BRTRACKER FIRMWARE VERSION 1.4
 // Written by Brian Tice
-// Last Revision: 6-7-2014
+// Last Revision: 6-11-2014
 
 
-// Define the number of samples to keep track of.  The higher the number,
-// the more the readings will be smoothed, but the slower the output will
-// respond to the input.  Using a constant rather than a normal variable lets
-// use this value to determine the size of the readings array.
 
-//#include <softwareserial.h>
+// Use SoftwareSerial Library to create a virtual serial port on pins 10 and 11 to run the RS-485 Output
+#include <SoftwareSerial.h>
 
 #define PASSENGER_VEHICLE               1
 #define DELIVERY_TRUCK                  2
@@ -16,12 +13,19 @@
 #define TRAILER_TRUCK_MODIFIED          4
 #define TANK_SELECTION_ERROR            99
 #define AREF                            3.30
+#define EMPTY_VALUE                     777
 
 #define TANK_MAX_PASSENGER_VEHICLE      60.0
 #define TANK_MAX_DELIVERY_TRUCK         200.0
 #define TANK_MAX_TRAILER_TRUCK          400.0
 #define TANK_MAX_TRAILER_TRUCK_MODIFIED 1200.0
-#include <SoftwareSerial.h>
+
+
+
+// Define the number of samples to keep track of.  The higher the number,
+// the more the readings will be smoothed, but the slower the output will
+// respond to the input.  Using a constant rather than a normal variable lets
+// use this value to determine the size of the readings array.
 const int numReadings = 40;
 int readings[numReadings];      // the readings from the analog input
 int index = 0;                  // the index of the current reading
@@ -124,6 +128,10 @@ void getLowPassFilteredADCReading() {
   average = total / numReadings;         
   // send it to the computer as ASCII digits
   
+  // Set Tank to full if ADC read a negative number
+  if (average < 0) {
+    average = EMPTY_VALUE;
+  }
   return;
 }
    
@@ -177,9 +185,6 @@ float convertADCToLiters(int ADCReading, int tankSize) {
 // broadcastDataRS232(literReading,voltageReading,tankSelectorState); 
 void broadcastDataRS232(float volume, float volumeGallons, float voltageOfSender, int tankSize) {
  
-  Serial.print(average);  
-  Serial.print("   ");
-  
   switch(tankSize) {
     case PASSENGER_VEHICLE: 
       Serial.print("PV");
@@ -211,10 +216,25 @@ void broadcastDataRS232(float volume, float volumeGallons, float voltageOfSender
 
 void broadcastDataRS485(float volume, float volumeGallons, float voltageOfSender, int tankSize) {
   
-  
-  mySerial.print(average);  
-  mySerial.print("   ");
-  mySerial.print(tankSize);
+  switch(tankSize) {
+    case PASSENGER_VEHICLE: 
+      mySerial.print("PV");
+      break;
+    case DELIVERY_TRUCK:
+      mySerial.print("DT");
+      break;
+    case TRAILER_TRUCK:
+      mySerial.print("TT");
+      break;
+    case TRAILER_TRUCK_MODIFIED:
+      mySerial.print("TM");
+      break;
+    default:
+      mySerial.print("ERROR");
+      break;
+  }
+  //Serial.print(tankSize);
+  //mySerial.print(tankSize);
   mySerial.print("   ");
   mySerial.print(voltageOfSender);
   mySerial.print("   ");
