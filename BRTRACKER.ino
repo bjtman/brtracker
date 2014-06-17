@@ -1,10 +1,10 @@
-// BRTRACKER FIRMWARE VERSION 1.4
+// BRTRACKER FIRMWARE VERSION 1.5
 // Written by Brian Tice
-// Last Revision: 6-11-2014
+// Last Revision: 6-16-2014
 
 
 
-// Use SoftwareSerial Library to create a virtual serial port on pins 10 and 11 to run the RS-485 Output
+// Use SoftwareSerial Library to create a virtual serial port on pins 10 and 11 to facilitate the RS-485 Output
 #include <SoftwareSerial.h>
 
 #define PASSENGER_VEHICLE               1
@@ -14,12 +14,12 @@
 #define TANK_SELECTION_ERROR            99
 #define AREF                            3.30
 #define EMPTY_VALUE                     777
-
+#define ADC_STATES                      1020
 #define TANK_MAX_PASSENGER_VEHICLE      60.0
 #define TANK_MAX_DELIVERY_TRUCK         200.0
 #define TANK_MAX_TRAILER_TRUCK          400.0
 #define TANK_MAX_TRAILER_TRUCK_MODIFIED 1200.0
-
+#define LITERS_IN_ONE_GALLON            3.785
 
 
 // Define the number of samples to keep track of.  The higher the number,
@@ -46,8 +46,8 @@ SoftwareSerial mySerial(RxPin, TxPin);
 void setup()
 {
   // initialize serial communication with computer:
-  Serial.begin(9600);       
-  mySerial.begin(9600);
+  Serial.begin(9600);           // Pins 0,1
+  mySerial.begin(9600);         // Pins 10,11
   pinMode(dipSwitchPin0,INPUT);
   pinMode(dipSwitchPin0,INPUT);
   pinMode(dipSwitchPin0,INPUT);  
@@ -55,7 +55,7 @@ void setup()
   // initialize all the readings to 0: 
   for (int thisReading = 0; thisReading < numReadings; thisReading++)
     readings[thisReading] = 0;      
-  analogReference(EXTERNAL);    
+  analogReference(EXTERNAL);    // We are setting the analog reference to 3.3V for better A/D resolution 
   
   
 }
@@ -137,7 +137,7 @@ void getLowPassFilteredADCReading() {
    
 float convertADCToVoltage(int ADCReading) {
   
-  float voltage = ((float)ADCReading / 1020) * AREF;
+  float voltage = ((float)ADCReading / ADC_STATES) * AREF;
   return voltage;
 }
 
@@ -165,10 +165,12 @@ float convertADCToLiters(int ADCReading, int tankSize) {
       break;
     }
     default: {
+      // Error State, incorrect Tank Size selected.
       fullTank = 0.0;
       break;
     }
   }
+  
   
   int ind = 0;
   while(ind < (sizeof(ADCLookUpTable) / sizeof(int)) ) {
@@ -182,7 +184,6 @@ float convertADCToLiters(int ADCReading, int tankSize) {
   return liters;
 }  
   
-// broadcastDataRS232(literReading,voltageReading,tankSelectorState); 
 void broadcastDataRS232(float volume, float volumeGallons, float voltageOfSender, int tankSize) {
  
   switch(tankSize) {
@@ -202,14 +203,14 @@ void broadcastDataRS232(float volume, float volumeGallons, float voltageOfSender
       Serial.print("ERROR");
       break;
   }
-  //Serial.print(tankSize);
+ 
   Serial.print("   ");
   Serial.print(voltageOfSender);
   Serial.print("   ");
   Serial.print(volume);
   Serial.print("   ");
   Serial.println(volumeGallons);
-  //Serial.println("  " + switchState); 
+  
   delay(1);        // delay in between reads for stability  
   return;
 } 
@@ -233,15 +234,14 @@ void broadcastDataRS485(float volume, float volumeGallons, float voltageOfSender
       mySerial.print("ERROR");
       break;
   }
-  //Serial.print(tankSize);
-  //mySerial.print(tankSize);
+  
   mySerial.print("   ");
   mySerial.print(voltageOfSender);
   mySerial.print("   ");
   mySerial.print(volume);
   mySerial.print("   ");
   mySerial.println(volumeGallons);
-  //Serial.println("  " + switchState); 
+  
   delay(1);        // delay in between reads for stability  
   
   
@@ -249,6 +249,6 @@ void broadcastDataRS485(float volume, float volumeGallons, float voltageOfSender
 }
 
 float convertLitersToGallons(float literReading) {
-  return literReading / 3.785;
+  return literReading / LITERS_IN_ONE_GALLON;
 }
   
