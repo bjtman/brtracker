@@ -1,4 +1,4 @@
-// BRTRACKER FIRMWARE VERSION 1.5
+// BRTRACKER FIRMWARE VERSION 1.6
 // Written by Brian Tice
 // Last Revision: 7-9-2014
 
