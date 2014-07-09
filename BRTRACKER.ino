@@ -1,6 +1,6 @@
 // BRTRACKER FIRMWARE VERSION 1.5
 // Written by Brian Tice
-// Last Revision: 6-16-2014
+// Last Revision: 7-9-2014
 
 
 
@@ -205,8 +205,6 @@ void broadcastDataRS232(float volume, float volumeGallons, float voltageOfSender
   }
  
   Serial.print("   ");
-  Serial.print(voltageOfSender);
-  Serial.print("   ");
   Serial.print(volume);
   Serial.print("   ");
   Serial.println(volumeGallons);
@@ -235,8 +233,6 @@ void broadcastDataRS485(float volume, float volumeGallons, float voltageOfSender
       break;
   }
   
-  mySerial.print("   ");
-  mySerial.print(voltageOfSender);
   mySerial.print("   ");
   mySerial.print(volume);
   mySerial.print("   ");
